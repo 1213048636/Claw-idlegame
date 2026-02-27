@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💫 放置游戏 - 银星世界</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #e94560;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(233, 69, 96, 0.5);
+        }
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+        }
+        .stats-panel {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+        .main-currency {
+            font-size: 3em;
+            text-align: center;
+            color: #ffd700;
+            text-shadow: 0 0 30px rgba(255,215,0,0.5);
+        }
+        .per-second {
+            text-align: center;
+            color: #4ecca3;
+            font-size: 1.2em;
+            margin-top: 10px;
+        }
+        .click-section {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .click-btn {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #e94560 0%, #c73e54 100%);
+            border: none;
+            color: white;
+            font-size: 1.5em;
+            cursor: pointer;
+            transition: all 0.1s;
+            box-shadow: 0 10px 30px rgba(233, 69, 96, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+        .click-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 15px 40px rgba(233, 69, 96, 0.6);
+        }
+        .click-btn:active {
+            transform: scale(0.95);
+        }
+        .click-btn::after {
+            content: '💫';
+            font-size: 3em;
+        }
+        .click-text {
+            margin-top: 15px;
+            font-size: 1.2em;
+            color: #aaa;
+        }
+        .upgrades {
+            display: grid;
+            gap: 15px;
+        }
+        .upgrade-item {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+        .upgrade-item:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.2);
+        }
+        .upgrade-info h3 {
+            color: #4ecca3;
+            margin-bottom: 5px;
+        }
+        .upgrade-info p {
+            color: #888;
+            font-size: 0.9em;
+        }
+        .upgrade-btn {
+            background: linear-gradient(135deg, #4ecca3, #3db892);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            color: #1a1a2e;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .upgrade-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(78, 204, 163, 0.4);
+        }
+        .upgrade-btn:disabled {
+            background: #555;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+        .upgrade-count {
+            background: #e94560;
+            padding: 2px 10px;
+            border-radius: 10px;
+            font-size: 0.8em;
+            margin-left: 10px;
+        }
+        .click-effect {
+            position: fixed;
+            pointer-events: none;
+            animation: floatUp 1s ease-out forwards;
+            font-size: 1.5em;
+            color: #ffd700;
+            font-weight: bold;
+            z-index: 1000;
+        }
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-100px) scale(1.5); }
+        }
+        .achievements {
+            margin-top: 30px;
+        }
+        .achievements h2 {
+            color: #e94560;
+            margin-bottom: 15px;
+        }
+        .achievement {
+            background: rgba(255,255,255,0.05);
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .achievement.locked {
+            opacity: 0.3;
+        }
+        .achievement-icon {
+            font-size: 1.5em;
+        }
+        .save-status {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(78, 204, 163, 0.9);
+            color: #1a1a2e;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .save-status.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💫 银星世界</h1>
+        <p class="subtitle">点击收集星光，升级解锁新世界</p>
+        
+        <div class="stats-panel">
+            <div class="main-currency" id="starDisplay">0 ⭐</div>
+            <div class="per-second" id="perSecond">每秒 +0 ⭐</div>
+        </div>
+        
+        <div class="click-section">
+            <button class="click-btn" id="clickBtn"></button>
+            <p class="click-text">点击获得 <span id="clickValue">1</span> ⭐</p>
+        </div>
+        
+        <div class="upgrades" id="upgrades">
+            <h2>🛒 升级商店</h2>
+        </div>
+        
+        <div class="achievements">
+            <h2>🏆 成就</h2>
+            <div id="achievementList"></div>
+        </div>
+    </div>
+    
+    <div class="save-status" id="saveStatus">💾 已保存</div>
+    
+    <script>
+        // 游戏数据
+        const gameData = {
+            stars: 0,
+            totalStars: 0,
+            clickValue: 1,
+            perSecond: 0,
+            upgrades: {},
+            achievements: {}
+        };
+        
+        // 升级配置
+        const upgradeConfigs = [
+            { id: 'cursor', name: '✨ 星光鼠标', desc: '每秒自动获得 1 ⭐', baseCost: 15, baseIncome: 1, costMultiplier: 1.5 },
+            { id: 'wand', name: '🪄 魔法棒', desc: '每秒自动获得 5 ⭐', baseCost: 100, baseIncome: 5, costMultiplier: 1.4 },
+            { id: 'crystal', name: '💎 水晶球', desc: '每秒自动获得 20 ⭐', baseCost: 500, baseIncome: 20, costMultiplier: 1.35 },
+            { id: 'crown', name: '👑 星星皇冠', desc: '每秒自动获得 100 ⭐', baseCost: 3000, baseIncome: 100, costMultiplier: 1.3 },
+            { id: 'galaxy', name: '🌌 银河系', desc: '每秒自动获得 500 ⭐', baseCost: 15000, baseIncome: 500, costMultiplier: 1.25 },
+            { id: 'universe', name: '🌟 宇宙之心', desc: '每秒自动获得 3000 ⭐', baseCost: 100000, baseIncome: 3000, costMultiplier: 1.2 },
+            { id: 'multiverse', name: '🔮 多元宇宙', desc: '每秒自动获得 20000 ⭐', baseCost: 1000000, baseIncome: 20000, costMultiplier: 1.15 }
+        ];
+        
+        // 成就配置
+        const achievementConfigs = [
+            { id: 'first_click', name: '初遇星光', desc: '点击获得第一颗星', icon: '⭐', requirement: { type: 'totalStars', value: 1 } },
+            { id: 'hundred', name: '小有收获', desc: '累计获得 100 颗星', icon: '🌟', requirement: { type: 'totalStars', value: 100 } },
+            { id: 'thousand', name: '星光璀璨', desc: '累计获得 1000 颗星', icon: '💫', requirement: { type: 'totalStars', value: 1000 } },
+            { id: 'ten_thousand', name: '星光大海', desc: '累计获得 10000 颗星', icon: '🌊', requirement: { type: 'totalStars', value: 10000 } },
+            { id: 'million', name: '银河霸主', desc: '累计获得 1000000 颗星', icon: '🏆', requirement: { type: 'totalStars', value: 1000000 } },
+            { id: 'first_upgrade', name: '初次升级', desc: '购买第一个升级', icon: '🛒', requirement: { type: 'upgradeCount', value: 1 } },
+            { id: 'auto_income', name: '自动吸星', desc: '拥有每秒 100 收入', icon: '🤖', requirement: { type: 'perSecond', value: 100 } },
+            { id: 'click_master', name: '点击大师', desc: '单次点击获得 100', icon: '👆', requirement: { type: 'clickValue', value: 100 } }
+        ];
+        
+        // 初始化
+        function init() {
+            loadGame();
+            renderUpgrades();
+            renderAchievements();
+            updateDisplay();
+            setInterval(gameLoop, 100);
+            setInterval(saveGame, 30000);
+            setInterval(offlineEarnings, 60000);
+        }
+        
+        // 游戏循环
+        function gameLoop() {
+            if (gameData.perSecond > 0) {
+                addStars(gameData.perSecond / 10);
+            }
+            updateDisplay();
+            checkAchievements();
+        }
+        
+        // 添加星星
+        function addStars(amount) {
+            gameData.stars += amount;
+            gameData.totalStars += amount;
+        }
+        
+        // 点击事件
+        document.getElementById('clickBtn').addEventListener('click', function(e) {
+            addStars(gameData.clickValue);
+            showClickEffect(e.clientX, e.clientY, '+' + formatNumber(gameData.clickValue));
+            updateDisplay();
+            checkAchievements();
+        });
+        
+        // 显示点击效果
+        function showClickEffect(x, y, text) {
+            const effect = document.createElement('div');
+            effect.className = 'click-effect';
+            effect.textContent = text;
+            effect.style.left = x + 'px';
+            effect.style.top = y + 'px';
+            document.body.appendChild(effect);
+            setTimeout(() => effect.remove(), 1000);
+        }
+        
+        // 渲染升级
+        function renderUpgrades() {
+            const container = document.getElementById('upgrades');
+            let html = '<h2>🛒 升级商店</h2>';
+            
+            upgradeConfigs.forEach(config => {
+                const count = gameData.upgrades[config.id] || 0;
+                const cost = Math.floor(config.baseCost * Math.pow(config.costMultiplier, count));
+                const canAfford = gameData.stars >= cost;
+                
+                html += `
+                    <div class="upgrade-item">
+                        <div class="upgrade-info">
+                            <h3>${config.name} <span class="upgrade-count">${count}</span></h3>
+                            <p>${config.desc}</p>
+                        </div>
+                        <button class="upgrade-btn" onclick="buyUpgrade('${config.id}')" ${canAfford ? '' : 'disabled'}>
+                            ${formatNumber(cost)} ⭐
+                        </button>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        // 购买升级
+        function buyUpgrade(id) {
+            const config = upgradeConfigs.find(u => u.id === id);
+            const count = gameData.upgrades[id] || 0;
+            const cost = Math.floor(config.baseCost * Math.pow(config.costMultiplier, count));
+            
+            if (gameData.stars >= cost) {
+                gameData.stars -= cost;
+                gameData.upgrades[id] = count + 1;
+                gameData.perSecond += config.baseIncome;
+                
+                // 鼠标升级增加点击值
+                if (id === 'cursor') {
+                    gameData.clickValue += 1;
+                }
+                
+                renderUpgrades();
+                updateDisplay();
+                checkAchievements();
+            }
+        }
+        
+        // 渲染成就
+        function renderAchievements() {
+            const container = document.getElementById('achievementList');
+            let html = '';
+            
+            achievementConfigs.forEach(config => {
+                const unlocked = gameData.achievements[config.id];
+                html += `
+                    <div class="achievement ${unlocked ? '' : 'locked'}">
+                        <span class="achievement-icon">${config.icon}</span>
+                        <div>
+                            <strong>${config.name}</strong>
+                            <p>${config.desc}</p>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        // 检查成就
+        function checkAchievements() {
+            let updated = false;
+            
+            achievementConfigs.forEach(config => {
+                if (gameData.achievements[config.id]) return;
+                
+                let achieved = false;
+                const req = config.requirement;
+                
+                if (req.type === 'totalStars' && gameData.totalStars >= req.value) achieved = true;
+                if (req.type === 'perSecond' && gameData.perSecond >= req.value) achieved = true;
+                if (req.type === 'clickValue' && gameData.clickValue >= req.value) achieved = true;
+                if (req.type === 'upgradeCount') {
+                    const totalUpgrades = Object.values(gameData.upgrades).reduce((a, b) => a + b, 0);
+                    if (totalUpgrades >= req.value) achieved = true;
+                }
+                
+                if (achieved) {
+                    gameData.achievements[config.id] = true;
+                    updated = true;
+                    showAchievement(config);
+                }
+            });
+            
+            if (updated) renderAchievements();
+        }
+        
+        // 显示成就解锁
+        function showAchievement(config) {
+            alert(`🎉 成就解锁: ${config.name}\n${config.desc}`);
+        }
+        
+        // 更新显示
+        function updateDisplay() {
+            document.getElementById('starDisplay').textContent = formatNumber(Math.floor(gameData.stars)) + ' ⭐';
+            document.getElementById('perSecond').textContent = '每秒 +' + formatNumber(gameData.perSecond) + ' ⭐';
+            document.getElementById('clickValue').textContent = formatNumber(gameData.clickValue);
+            
+            // 更新升级按钮状态
+            upgradeConfigs.forEach(config => {
+                const count = gameData.upgrades[config.id] || 0;
+                const cost = Math.floor(config.baseCost * Math.pow(config.costMultiplier, count));
+                const btn = document.querySelector(`button[onclick="buyUpgrade('${config.id}')"]`);
+                if (btn) btn.disabled = gameData.stars < cost;
+            });
+        }
+        
+        // 数字格式化
+        function formatNumber(num) {
+            if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+            if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+            if (num >= 1e3) return (num / 1e3).toFixed(2) + 'K';
+            return Math.floor(num).toString();
+        }
+        
+        // 保存游戏
+        function saveGame() {
+            localStorage.setItem('idleGame', JSON.stringify(gameData));
+            showSaveStatus();
+        }
+        
+        // 加载游戏
+        function loadGame() {
+            const saved = localStorage.getItem('idleGame');
+            if (saved) {
+                const data = JSON.parse(saved);
+                Object.assign(gameData, data);
+                
+                // 重新计算收入
+                gameData.perSecond = 0;
+                upgradeConfigs.forEach(config => {
+                    const count = gameData.upgrades[config.id] || 0;
+                    gameData.perSecond += count * config.baseIncome;
+                });
+                
+                // 重新计算点击值
+                const cursorCount = gameData.upgrades['cursor'] || 0;
+                gameData.clickValue = 1 + cursorCount;
+            }
+        }
+        
+        // 离线收益
+        function offlineEarnings() {
+            const saved = localStorage.getItem('idleGame');
+            if (saved) {
+                const lastSave = JSON.parse(saved);
+                const now = Date.now();
+                const diffMinutes = (now - (lastSave._lastSave || now)) / 60000;
+                
+                if (diffMinutes > 1 && lastSave.perSecond > 0) {
+                    const offline = Math.floor(lastSave.perSecond * diffMinutes);
+                    if (offline > 0) {
+                        gameData.stars += offline;
+                        gameData.totalStars += offline;
+                        alert(`欢迎回来！离线期间获得了 ${formatNumber(offline)} ⭐`);
+                    }
+                }
+            }
+            gameData._lastSave = Date.now();
+        }
+        
+        // 显示保存状态
+        function showSaveStatus() {
+            const status = document.getElementById('saveStatus');
+            status.classList.add('show');
+            setTimeout(() => status.classList.remove('show'), 2000);
+        }
+        
+        // 启动游戏
+        init();
+    </script>
+</body>
+</html>
