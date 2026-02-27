@@ -8,7 +8,7 @@
 
 ## 🎮 游戏预览
 
-![Game Preview](preview.png)
+![Game Preview](preview.jpg)
 
 点击星光按钮收集⭐，购买升级获得被动收入，解锁成就成为银河霸主！
 
