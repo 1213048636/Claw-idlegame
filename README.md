@@ -1,4 +1,4 @@
-# 💫 银星世界 (Silver Star World)
+# 💫 银星世界 
 
 A beautiful idle click game - collect starlight in the vast starry sky, unlock upgrades, and explore the ultimate secrets of the universe!
 
